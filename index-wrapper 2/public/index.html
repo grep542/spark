@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Index</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist+Mono:wght@300;400;500&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="/css/app.css"/>
+</head>
+<body>
+
+<!-- ── GATEWAY STATUS BAR ───────────────────────────────── -->
+<div id="statusBar" class="status-bar status-connecting">
+  <span class="sb-dot"></span>
+  <span id="statusText">Connecting to OpenClaw Gateway…</span>
+  <span class="sb-hint">openclaw gateway --port 18789</span>
+</div>
+
+<!-- ── NAV ──────────────────────────────────────────────── -->
+<nav class="nav">
+  <a class="nav-logo">
+    <div class="nav-mark">ix</div>
+    Index
+  </a>
+  <div class="nav-links">
+    <a class="nav-link active" data-view="inbox">Inbox</a>
+    <a class="nav-link" data-view="chat">Chat</a>
+    <a class="nav-link" data-view="channels">Channels</a>
+    <a class="nav-link" data-view="automations">Automations</a>
+  </div>
+  <div class="nav-right">
+    <div class="nav-model" id="navModel">— / —</div>
+    <div class="nav-status-pill" id="navPill">
+      <span class="ns-dot"></span>
+      <span id="navPillText">connecting</span>
+    </div>
+  </div>
+</nav>
+
+<!-- ── APP LAYOUT ───────────────────────────────────────── -->
+<div class="app-layout">
+
+  <!-- LEFT SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-user" id="sidebarUser">
+      <div class="su-avatar">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+          <circle cx="8" cy="5.5" r="3" stroke="white" stroke-width="1.4"/>
+          <path d="M2 14c0-3.314 2.686-6 6-6s6 2.686 6 6" stroke="white" stroke-width="1.4" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <div>
+        <div class="su-name" id="suName">Index</div>
+        <div class="su-session" id="suSession">main session</div>
+      </div>
+    </div>
+
+    <nav class="side-nav">
+      <div class="sn-group">Workspace</div>
+      <div class="sn-item active" data-view="inbox">
+        <span class="sni-icon">⊡</span>Inbox
+        <span class="sni-badge" id="badge-inbox" style="display:none">0</span>
+      </div>
+      <div class="sn-item" data-view="chat">
+        <span class="sni-icon">◈</span>Chat with Index
+      </div>
+      <div class="sn-item" data-view="automations">
+        <span class="sni-icon">◎</span>Automations
+      </div>
+
+      <div class="sn-group">Channels</div>
+      <div id="channelList">
+        <!-- populated by gateway data -->
+        <div class="sn-item sn-placeholder">Loading channels…</div>
+      </div>
+
+      <div class="sn-group">System</div>
+      <div class="sn-item" data-view="channels">
+        <span class="sni-icon">⊕</span>Connect Apps
+      </div>
+      <div class="sn-item" id="btnDoctor" onclick="runDoctor()">
+        <span class="sni-icon">⊘</span>Run Doctor
+      </div>
+    </nav>
+
+    <!-- Session stats -->
+    <div class="sidebar-stats" id="sidebarStats">
+      <div class="ss-row"><span>Context</span><span id="statCtx">—</span></div>
+      <div class="ss-row"><span>Tokens</span><span id="statTokens">—</span></div>
+      <div class="ss-row"><span>Cost</span><span id="statCost">—</span></div>
+      <div class="ss-bar-wrap"><div class="ss-bar"><div class="ss-fill" id="ctxFill" style="width:0%"></div></div></div>
+    </div>
+  </aside>
+
+  <!-- CENTER PANEL -->
+  <main class="center" id="centerPanel">
+
+    <!-- ── INBOX VIEW ── -->
+    <div class="view active" id="view-inbox">
+      <div class="view-header">
+        <div>
+          <h2 class="vh-title">Unified Inbox</h2>
+          <div class="vh-sub" id="inboxSub">Loading…</div>
+        </div>
+        <div class="vh-actions">
+          <button class="chip" onclick="refreshInbox()">↻ Refresh</button>
+          <button class="chip chip-primary" onclick="switchView('chat')">+ Ask Index</button>
+        </div>
+      </div>
+      <div class="inbox-list" id="inboxList">
+        <div class="inbox-empty" id="inboxEmpty">
+          <div class="ie-icon">⊡</div>
+          <div class="ie-title">Connecting to gateway…</div>
+          <div class="ie-sub">Make sure OpenClaw is running: <code>openclaw gateway --port 18789</code></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── CHAT VIEW ── -->
+    <div class="view" id="view-chat">
+      <div class="view-header">
+        <div>
+          <h2 class="vh-title">Chat with Index</h2>
+          <div class="vh-sub" id="chatSub">main session</div>
+        </div>
+        <div class="vh-actions">
+          <button class="chip" onclick="sendCommand('/status')">Status</button>
+          <button class="chip" onclick="sendCommand('/compact')">Compact</button>
+          <button class="chip" onclick="sendCommand('/new')">New Session</button>
+        </div>
+      </div>
+      <div class="messages" id="messages">
+        <div class="msg-system">Session started. Index is wrapping your OpenClaw gateway.</div>
+      </div>
+      <div class="compose">
+        <div class="compose-inner">
+          <textarea id="chatInput"
+            placeholder="Message Index… (Enter to send, Shift+Enter for newline)"
+            rows="1"
+            onkeydown="handleChatKey(event)"
+            oninput="autoGrow(this)"></textarea>
+          <div class="compose-tools">
+            <button class="ct-btn" onclick="insertSlash()">/</button>
+            <button class="ct-btn" onclick="sendCommand('/think high')">Think: high</button>
+            <div class="ct-sep"></div>
+            <button class="send-btn" onclick="sendChatMessage()">↑</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── CHANNELS VIEW ── -->
+    <div class="view" id="view-channels">
+      <div class="view-header">
+        <div>
+          <h2 class="vh-title">Connect Apps</h2>
+          <div class="vh-sub">Pair channels with your OpenClaw gateway</div>
+        </div>
+      </div>
+      <div class="channels-grid" id="channelsGrid">
+        <!-- populated dynamically -->
+      </div>
+      <div class="connect-help">
+        <h3>How connecting works</h3>
+        <p>Each channel needs credentials stored in <code>~/.openclaw/openclaw.json</code>. Index shows you what's live and what needs setup. Click any channel below to see the exact config snippet to add.</p>
+        <div class="help-steps">
+          <div class="hs-item"><span class="hs-num">1</span><span>Run <code>openclaw onboard</code> for guided setup</span></div>
+          <div class="hs-item"><span class="hs-num">2</span><span>Or edit <code>~/.openclaw/openclaw.json</code> directly</span></div>
+          <div class="hs-item"><span class="hs-num">3</span><span>Restart gateway: <code>openclaw gateway --port 18789</code></span></div>
+          <div class="hs-item"><span class="hs-num">4</span><span>Channels appear live here automatically</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── AUTOMATIONS VIEW ── -->
+    <div class="view" id="view-automations">
+      <div class="view-header">
+        <div>
+          <h2 class="vh-title">Automations</h2>
+          <div class="vh-sub">Scheduled tasks running via OpenClaw cron</div>
+        </div>
+        <div class="vh-actions">
+          <button class="chip chip-primary" onclick="openCronModal()">+ New</button>
+        </div>
+      </div>
+      <div class="automations-list" id="automationsList">
+        <div class="auto-empty">
+          <div class="ae-icon">◎</div>
+          <div class="ae-title">No automations yet</div>
+          <div class="ae-sub">Create one above, or use <code>/cron</code> in the chat</div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- RIGHT PANEL -->
+  <aside class="right-panel">
+
+    <!-- Model -->
+    <div class="rp-section">
+      <div class="rp-label">Model</div>
+      <div class="model-display" id="modelDisplay">
+        <div class="md-name" id="mdName">—</div>
+        <div class="md-meta" id="mdMeta">—</div>
+      </div>
+      <div class="model-quick">
+        <button class="mq-btn active" onclick="setModel(this,'anthropic/claude-opus-4-6')">Opus 4.6</button>
+        <button class="mq-btn" onclick="setModel(this,'anthropic/claude-sonnet-4-5')">Sonnet 4.5</button>
+        <button class="mq-btn" onclick="setModel(this,'anthropic/claude-haiku-4-5')">Haiku 4.5</button>
+      </div>
+    </div>
+
+    <!-- Usage -->
+    <div class="rp-section">
+      <div class="rp-label">Session usage</div>
+      <div class="usage-rows" id="usageRows">
+        <div class="ur-row"><span>Tokens in</span><span id="uTokenIn">—</span></div>
+        <div class="ur-row"><span>Tokens out</span><span id="uTokenOut">—</span></div>
+        <div class="ur-row"><span>Total cost</span><span id="uCost">—</span></div>
+        <div class="ur-row"><span>Messages</span><span id="uMsgs">0</span></div>
+      </div>
+    </div>
+
+    <!-- Live channels status -->
+    <div class="rp-section">
+      <div class="rp-label">Live channels</div>
+      <div class="live-channels" id="liveChannels">
+        <div class="lc-placeholder">Polling gateway…</div>
+      </div>
+    </div>
+
+    <!-- Raw gateway log -->
+    <div class="rp-section rp-log-section">
+      <div class="rp-label">Gateway log <button class="log-clear" onclick="clearLog()">clear</button></div>
+      <div class="gateway-log" id="gatewayLog"></div>
+    </div>
+
+  </aside>
+</div>
+
+<!-- ── COMMAND PALETTE ───────────────────────────────────── -->
+<div class="cmd-bg" id="cmdBg" onclick="closeCmdPalette()">
+  <div class="cmd-palette" onclick="event.stopPropagation()">
+    <div class="cp-header">
+      <span class="cp-slash">/</span>
+      <input class="cp-input" id="cpInput" placeholder="command…" oninput="filterCommands(this.value)" onkeydown="cpKey(event)"/>
+    </div>
+    <div class="cp-list" id="cpList"></div>
+  </div>
+</div>
+
+<!-- ── SNIPPET MODAL ─────────────────────────────────────── -->
+<div class="modal-bg" id="snippetBg" onclick="closeSnippet()">
+  <div class="modal" onclick="event.stopPropagation()">
+    <h3 id="snippetTitle">Config snippet</h3>
+    <p class="modal-sub" id="snippetSub"></p>
+    <pre class="snippet-code" id="snippetCode"></pre>
+    <div class="modal-actions">
+      <button class="btn-ghost-sm" onclick="closeSnippet()">Close</button>
+      <button class="btn-primary-sm" onclick="copySnippet()">Copy config</button>
+    </div>
+  </div>
+</div>
+
+<script src="/js/app.js"></script>
+</body>
+</html>

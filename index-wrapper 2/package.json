@@ -1,0 +1,19 @@
+{
+  "name": "index-wrapper",
+  "version": "1.0.0",
+  "description": "Index — a clean UI wrapper around OpenClaw Gateway",
+  "main": "src/server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "ws": "^8.16.0",
+    "http-proxy-middleware": "^3.0.0"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
